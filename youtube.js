@@ -47,8 +47,8 @@
       );
     }
     button.title = active
-      ? "Exit window fullscreen (`)"
-      : "Window fullscreen (`)";
+      ? "Exit window fullscreen (F)"
+      : "Window fullscreen (F)";
     button.setAttribute("aria-label", button.title);
     button.setAttribute("aria-pressed", String(active));
   }
@@ -162,11 +162,19 @@
 
     if (event.key === "Escape" && isActive()) {
       exit();
-    } else if (event.code === "Backquote" && !isTyping && !event.repeat) {
+    } else if (
+      event.key.toLowerCase() === "f" &&
+      !isTyping &&
+      !event.repeat &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey
+    ) {
       event.preventDefault();
+      event.stopImmediatePropagation();
       toggle();
     }
-  });
+  }, true);
 
   document.addEventListener("fullscreenchange", () => {
     if (document.fullscreenElement && isActive()) exit();

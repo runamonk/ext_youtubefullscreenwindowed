@@ -17,9 +17,9 @@ Open a YouTube video, then use any of these controls:
 
 - Click the new four-corners button in the YouTube player controls.
 - Click the extension's toolbar button.
-- Press the backquote key (`` ` ``).
+- Press **F**.
 
-Press **Escape**, the backquote key, or the player button again to exit.
+Press **Escape**, **F**, or the player button again to exit.
 
 The extension runs only on `https://www.youtube.com/*` and requests no optional
 permissions.
