@@ -1,0 +1,59 @@
+html.yt-window-fullscreen,
+html.yt-window-fullscreen body {
+  overflow: hidden !important;
+}
+
+html.yt-window-fullscreen #movie_player.yt-window-fullscreen-player {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483647 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  background: #000 !important;
+}
+
+html.yt-window-fullscreen #movie_player.yt-window-fullscreen-player video {
+  max-width: none !important;
+  max-height: none !important;
+}
+
+html.yt-window-fullscreen #masthead-container,
+html.yt-window-fullscreen ytd-masthead,
+html.yt-window-fullscreen ytd-watch-metadata,
+html.yt-window-fullscreen #below,
+html.yt-window-fullscreen #secondary {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+html.yt-window-fullscreen #movie_player .ytp-chrome-top,
+html.yt-window-fullscreen #movie_player .ytp-chrome-bottom {
+  opacity: 0 !important;
+  transition: opacity 180ms ease-in-out !important;
+}
+
+html.yt-window-fullscreen #movie_player .ytp-chrome-top:hover,
+html.yt-window-fullscreen #movie_player .ytp-chrome-top:focus-within,
+html.yt-window-fullscreen #movie_player .ytp-chrome-bottom:hover,
+html.yt-window-fullscreen #movie_player .ytp-chrome-bottom:focus-within {
+  opacity: 1 !important;
+}
+
+#yt-window-fullscreen-button {
+  box-sizing: border-box;
+  color: #fff;
+  position: relative;
+  width: 48px;
+}
+
+#yt-window-fullscreen-button svg {
+  display: block;
+  height: 24px;
+  margin: auto;
+  pointer-events: none;
+  width: 24px;
+}
