@@ -5,8 +5,21 @@
   const PLAYER_CLASS = "yt-window-fullscreen-player";
   const BUTTON_ID = "yt-window-fullscreen-button";
   let activePlayer = null;
-  let autoActivatedVideo = null;
+  const manuallyExitedVideos = new Set();
   let chatHandledVideo = null;
+  let endCheckTimer = null;
+  const endObserver = new MutationObserver(checkPlaybackEnded);
+
+  function isShowingAd(player) {
+    return !!player && (player.classList.contains("ad-showing") ||
+      player.classList.contains("ad-interrupting"));
+  }
+
+  function checkPlaybackEnded() {
+    if (!isActive() || !activePlayer || isShowingAd(activePlayer)) return;
+    const video = activePlayer.querySelector("video");
+    if (activePlayer.classList.contains("ended-mode") || video?.ended) exit();
+  }
 
 
 
@@ -53,7 +66,14 @@
     button.setAttribute("aria-pressed", String(active));
   }
 
-  function exit() {
+  function exit(manual = false) {
+    if (manual) {
+      const videoKey = getVideoKey();
+      if (videoKey) manuallyExitedVideos.add(videoKey);
+    }
+    endObserver.disconnect();
+    clearInterval(endCheckTimer);
+    endCheckTimer = null;
     document.documentElement.classList.remove(ROOT_CLASS);
     activePlayer?.classList.remove(PLAYER_CLASS);
     activePlayer = null;
@@ -69,7 +89,11 @@
       document.exitFullscreen().catch(() => {});
     }
 
+    endObserver.disconnect();
+    clearInterval(endCheckTimer);
     activePlayer = player;
+    endObserver.observe(player, { attributes: true, attributeFilter: ["class"] });
+    endCheckTimer = setInterval(checkPlaybackEnded, 250);
     activePlayer.classList.add(PLAYER_CLASS);
     document.documentElement.classList.add(ROOT_CLASS);
     window.scrollTo(0, 0);
@@ -78,17 +102,34 @@
   }
 
   function toggle() {
-    isActive() ? exit() : enter();
+    if (isActive()) {
+      exit(true);
+    } else {
+      manuallyExitedVideos.delete(getVideoKey());
+      enter();
+    }
   }
 
   function autoActivate() {
     const videoKey = getVideoKey();
-    if (!videoKey || videoKey === autoActivatedVideo || !getPlayer()) return;
+    const player = getPlayer();
+    const video = player?.querySelector("video");
+    if (
+      !videoKey ||
+      manuallyExitedVideos.has(videoKey) ||
+      !video ||
+      video.paused ||
+      video.ended ||
+      video.readyState < 3 ||
+      player.classList.contains("ended-mode") ||
+      isShowingAd(player) ||
+      document.fullscreenElement
+    ) return;
 
-    autoActivatedVideo = videoKey;
+    if (isActive() && activePlayer === player) return;
+    if (activePlayer) exit();
     enter();
   }
-
   function closeChatIfPresent() {
     const videoKey = getVideoKey();
     if (!videoKey || videoKey === chatHandledVideo) return;
@@ -161,7 +202,7 @@
       (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
 
     if (event.key === "Escape" && isActive()) {
-      exit();
+      exit(true);
     } else if (
       event.key.toLowerCase() === "f" &&
       !isTyping &&
@@ -176,11 +217,38 @@
     }
   }, true);
 
+  // Recheck playback when YouTube reuses the player for a new video.
+  for (const eventName of ["playing", "timeupdate"]) {
+    document.addEventListener(eventName, (event) => {
+      if (event.target instanceof HTMLVideoElement &&
+          getPlayer()?.contains(event.target)) autoActivate();
+    }, true);
+  }
+
+  document.addEventListener("yt-navigate-finish", () => {
+    if (!getVideoKey() && isActive()) exit();
+    autoActivate();
+  });
+  // Media events do not bubble; capture also handles replacement video elements.
+  document.addEventListener("ended", (event) => {
+    const video = event.target;
+    console.log("Video ended event:", video, activePlayer, isActive(), isShowingAd(activePlayer));
+    if (
+      !isActive() ||
+      !(video instanceof HTMLVideoElement) ||
+      !activePlayer?.contains(video) ||
+      isShowingAd(activePlayer)
+    ) return;
+
+    exit();
+  }, true);
+
   document.addEventListener("fullscreenchange", () => {
-    if (document.fullscreenElement && isActive()) exit();
+    if (document.fullscreenElement && isActive()) exit(true);
   });
 
   chrome.runtime.onMessage.addListener((message) => {
     if (message?.type === "toggle-window-fullscreen") toggle();
   });
+
 })();
