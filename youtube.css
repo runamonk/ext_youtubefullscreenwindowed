@@ -6,7 +6,7 @@ html.yt-window-fullscreen body {
 html.yt-window-fullscreen #movie_player.yt-window-fullscreen-player {
   position: fixed !important;
   inset: 0 !important;
-  z-index: 2147483647 !important;
+  z-index: 2100 !important;
   width: 100vw !important;
   height: 100vh !important;
   max-width: none !important;
@@ -20,8 +20,6 @@ html.yt-window-fullscreen #movie_player.yt-window-fullscreen-player video {
   max-height: none !important;
 }
 
-html.yt-window-fullscreen #masthead-container,
-html.yt-window-fullscreen ytd-masthead,
 html.yt-window-fullscreen ytd-watch-metadata,
 html.yt-window-fullscreen #below,
 html.yt-window-fullscreen #secondary {
@@ -75,7 +73,7 @@ html.yt-window-shorts ytd-shorts {
   margin-top: 0 !important;
 }
 /* An 8px hover target and keyboard focus reveal the header. */
-html.yt-window-shorts #masthead-container {
+html:is(.yt-window-shorts, .yt-window-fullscreen) #masthead-container {
   --ytd-masthead-height: 56px;
   position: fixed !important;
   top: 0 !important;
@@ -86,14 +84,14 @@ html.yt-window-shorts #masthead-container {
   transition: transform 160ms ease, opacity 160ms ease;
 }
 
-html.yt-window-shorts #masthead-container:hover,
-html.yt-window-shorts #masthead-container:focus-within {
+html:is(.yt-window-shorts, .yt-window-fullscreen) #masthead-container:hover,
+html:is(.yt-window-shorts, .yt-window-fullscreen) #masthead-container:focus-within {
   transform: translateY(0);
   opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html.yt-window-shorts #masthead-container {
+  html:is(.yt-window-shorts, .yt-window-fullscreen) #masthead-container {
     transition: none;
   }
 }
