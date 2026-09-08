@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "YouTube Window Fullscreen",
   "description": "Make a YouTube video fill the browser window without entering native fullscreen.",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "action": {
     "default_title": "Toggle YouTube window fullscreen"
   },

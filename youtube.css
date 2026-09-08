@@ -102,3 +102,11 @@ html.yt-window-shorts ytd-shorts.yt-window-shorts-fit {
   scale: var(--yt-window-shorts-scale, 1);
   translate: 0 var(--yt-window-shorts-offset, 0px);
 }
+/* The scrollport must contain the unscaled player; otherwise scaling the feed
+   leaves a clipped bottom edge inside the browser viewport. Keep native scrolling. */
+html.yt-window-shorts ytd-shorts.yt-window-shorts-stage,
+html.yt-window-shorts ytd-shorts.yt-window-shorts-stage #shorts-container {
+  height: var(--yt-window-shorts-stage-height) !important;
+  min-height: var(--yt-window-shorts-stage-height) !important;
+  max-height: none !important;
+}

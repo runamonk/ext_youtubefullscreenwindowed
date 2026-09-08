@@ -18,6 +18,8 @@
     if (!observedShorts) return;
     observedShorts.style.removeProperty("--yt-window-shorts-scale");
     observedShorts.style.removeProperty("--yt-window-shorts-offset");
+    observedShorts.style.removeProperty("--yt-window-shorts-stage-height");
+    observedShorts.classList.remove("yt-window-shorts-stage");
     observedShorts.classList.remove("yt-window-shorts-fit");
   }
 
@@ -41,8 +43,21 @@
 
     const player = reel.querySelector("#player-container");
     if (!player) return;
-    const bounds = player.getBoundingClientRect();
+    let bounds = player.getBoundingClientRect();
     if (bounds.width <= 0 || bounds.height <= 0) return;
+    // Scaling also shrinks the feed's scrollport. Give that scrollport enough
+    // unscaled height to hold the entire player before applying the transform.
+    const stageHeight = Math.ceil(Math.max(
+      viewport?.height || window.innerHeight, bounds.height + 24
+    ));
+    feed.style.setProperty("--yt-window-shorts-stage-height", stageHeight + "px");
+    feed.classList.add("yt-window-shorts-stage");
+    // The larger scrollport can change native vertical alignment.
+    bounds = player.getBoundingClientRect();
+    if (bounds.width <= 0 || bounds.height <= 0) {
+      clearShortsFit();
+      return;
+    }
     // Inner video elements can retain their source-sized bounds or offscreen
     // offsets. The visible player box is the sizing reference, not their union.
     const origin = feed.getBoundingClientRect().top;
@@ -51,7 +66,8 @@
     const scaledHeight = bounds.height * scale;
     const scaledTop = origin + (bounds.top - origin) * scale;
     const targetTop = top + (availableHeight - scaledHeight) / 2;
-    const offset = targetTop - scaledTop;    // Transform their common ancestor once: player, preview, overlays and actions
+    const offset = targetTop - scaledTop;
+    // Transform their common ancestor once: player, preview, overlays and actions
     // all keep exactly the same relative positions and hit targets.
     feed.style.setProperty("--yt-window-shorts-scale", String(scale));
     feed.style.setProperty("--yt-window-shorts-offset", offset + "px");
