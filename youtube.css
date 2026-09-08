@@ -57,3 +57,50 @@ html.yt-window-fullscreen #movie_player .ytp-chrome-bottom:focus-within {
   pointer-events: none;
   width: 24px;
 }
+/* Reclaim the header space without changing the native player geometry.
+   Fixed positioning on ytd-shorts shrink-wraps the feed and changes stacking,
+   while resizing inner player nodes separates video from its click targets. */
+html.yt-window-shorts,
+html.yt-window-shorts ytd-app {
+  --ytd-masthead-height: 0px !important;
+}
+
+html.yt-window-shorts ytd-page-manager {
+  margin-top: 0 !important;
+}
+
+html.yt-window-shorts ytd-shorts {
+  --ytd-shorts-masthead-height: 0px !important;
+  --ytd-shorts-top-spacing: 0px !important;
+  margin-top: 0 !important;
+}
+/* An 8px hover target and keyboard focus reveal the header. */
+html.yt-window-shorts #masthead-container {
+  --ytd-masthead-height: 56px;
+  position: fixed !important;
+  top: 0 !important;
+  height: 56px !important;
+  z-index: 2200 !important;
+  transform: translateY(calc(-100% + 8px));
+  opacity: 0;
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+
+html.yt-window-shorts #masthead-container:hover,
+html.yt-window-shorts #masthead-container:focus-within {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.yt-window-shorts #masthead-container {
+    transition: none;
+  }
+}
+/* One transform for the entire feed keeps the live player, preview, overlays
+   and action rail aligned. Never transform an individual player layer. */
+html.yt-window-shorts ytd-shorts.yt-window-shorts-fit {
+  transform-origin: center top !important;
+  scale: var(--yt-window-shorts-scale, 1);
+  translate: 0 var(--yt-window-shorts-offset, 0px);
+}

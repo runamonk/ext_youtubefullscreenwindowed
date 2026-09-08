@@ -13,6 +13,11 @@ fullscreen mode.
 
 ## Use
 
+Shorts automatically fit the browser content height without cropping the video.
+Move the pointer to the top edge of the page to reveal the YouTube header; it also
+appears when its controls receive keyboard focus. Shorts retain their normal feed
+controls and keyboard shortcuts.
+
 Window fullscreen activates when a video starts playing. Use any of these controls to toggle it:
 
 - Click the new four-corners button in the YouTube player controls.

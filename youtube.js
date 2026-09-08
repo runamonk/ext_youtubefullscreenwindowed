@@ -4,6 +4,84 @@
   const ROOT_CLASS = "yt-window-fullscreen";
   const PLAYER_CLASS = "yt-window-fullscreen-player";
   const BUTTON_ID = "yt-window-fullscreen-button";
+  const SHORTS_CLASS = "yt-window-shorts";
+
+  function isShortsPage() {
+    return /^\/shorts(?:\/|$)/.test(location.pathname);
+  }
+
+  let shortsResizeFrame = 0;
+  let observedShorts = null;
+  const shortsResizeObserver = new ResizeObserver(scheduleShortsResize);
+
+  function clearShortsFit() {
+    if (!observedShorts) return;
+    observedShorts.style.removeProperty("--yt-window-shorts-scale");
+    observedShorts.style.removeProperty("--yt-window-shorts-offset");
+    observedShorts.classList.remove("yt-window-shorts-fit");
+  }
+
+  function fitShortsBounds() {
+    clearShortsFit();
+    if (!isShortsPage() || !observedShorts || document.fullscreenElement) return;
+    const feed = observedShorts;
+    const viewport = window.visualViewport;
+    const top = (viewport?.offsetTop || 0) + 12;
+    const bottom = (viewport?.offsetTop || 0) +
+      (viewport?.height || window.innerHeight) - 12;
+    // Choose the visible reel before scaling. Offscreen feed items stay in place
+    // relative to the active item, preserving YouTube's scrolling behaviour.
+    const reels = [...feed.querySelectorAll("ytd-reel-video-renderer")];
+    const reel = reels.reduce((best, item) => {
+      const rect = item.getBoundingClientRect();
+      const overlap = Math.max(0, Math.min(bottom, rect.bottom) - Math.max(top, rect.top));
+      return overlap > best.overlap ? { item, overlap } : best;
+    }, { item: null, overlap: 0 }).item;
+    if (!reel) return;
+
+    const player = reel.querySelector("#player-container");
+    if (!player) return;
+    const bounds = player.getBoundingClientRect();
+    if (bounds.width <= 0 || bounds.height <= 0) return;
+    // Inner video elements can retain their source-sized bounds or offscreen
+    // offsets. The visible player box is the sizing reference, not their union.
+    const origin = feed.getBoundingClientRect().top;
+    const availableHeight = Math.max(1, bottom - top);
+    const scale = Math.min(1, availableHeight / bounds.height);
+    const scaledHeight = bounds.height * scale;
+    const scaledTop = origin + (bounds.top - origin) * scale;
+    const targetTop = top + (availableHeight - scaledHeight) / 2;
+    const offset = targetTop - scaledTop;    // Transform their common ancestor once: player, preview, overlays and actions
+    // all keep exactly the same relative positions and hit targets.
+    feed.style.setProperty("--yt-window-shorts-scale", String(scale));
+    feed.style.setProperty("--yt-window-shorts-offset", offset + "px");
+    feed.classList.add("yt-window-shorts-fit");
+  }
+
+  function scheduleShortsResize() {
+    if (shortsResizeFrame || !isShortsPage()) return;
+    shortsResizeFrame = requestAnimationFrame(() => {
+      shortsResizeFrame = 0;
+      fitShortsBounds();
+    });
+  }
+
+  function updateShortsLayout() {
+    const shorts = isShortsPage();
+    if (shorts && isActive()) exit();
+    const feed = shorts ? document.querySelector("ytd-shorts") : null;
+    if (feed !== observedShorts) {
+      clearShortsFit();
+      shortsResizeObserver.disconnect();
+      observedShorts = feed;
+      if (feed) shortsResizeObserver.observe(feed);
+    }
+    if (shorts) scheduleShortsResize();
+    else clearShortsFit();
+    if (document.documentElement.classList.contains(SHORTS_CLASS) === shorts) return;
+    document.documentElement.classList.toggle(SHORTS_CLASS, shorts);
+    window.dispatchEvent(new Event("resize"));
+  }
   let activePlayer = null;
   const manuallyExitedVideos = new Set();
   let chatHandledVideo = null;
@@ -102,6 +180,7 @@
   }
 
   function toggle() {
+    if (isShortsPage()) return;
     if (isActive()) {
       exit(true);
     } else {
@@ -149,6 +228,7 @@
   }
 
   function addButton() {
+    if (isShortsPage()) return;
     if (document.getElementById(BUTTON_ID)) return;
 
     const controls = document.querySelector(
@@ -184,6 +264,7 @@
   }
 
   const observer = new MutationObserver(() => {
+    updateShortsLayout();
     addButton();
     autoActivate();
     closeChatIfPresent();
@@ -191,6 +272,7 @@
   });
 
   observer.observe(document.documentElement, { childList: true, subtree: true });
+  updateShortsLayout();
   addButton();
   autoActivate();
   closeChatIfPresent();
@@ -205,6 +287,7 @@
       exit(true);
     } else if (
       event.key.toLowerCase() === "f" &&
+      !isShortsPage() &&
       !isTyping &&
       !event.repeat &&
       !event.ctrlKey &&
@@ -225,7 +308,17 @@
     }, true);
   }
 
+  document.addEventListener("scrollend", scheduleShortsResize, true);
+  document.addEventListener("loadedmetadata", scheduleShortsResize, true);
+  document.addEventListener("loadeddata", scheduleShortsResize, true);
+  document.addEventListener("playing", scheduleShortsResize, true);
+  document.addEventListener("emptied", scheduleShortsResize, true);
+  document.addEventListener("fullscreenchange", scheduleShortsResize);
+  window.addEventListener("resize", scheduleShortsResize);
+  window.visualViewport?.addEventListener("resize", scheduleShortsResize);
+  window.addEventListener("popstate", updateShortsLayout);
   document.addEventListener("yt-navigate-finish", () => {
+    updateShortsLayout();
     if (!getVideoKey() && isActive()) exit();
     autoActivate();
   });
