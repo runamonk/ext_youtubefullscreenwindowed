@@ -10,6 +10,35 @@
     return /^\/shorts(?:\/|$)/.test(location.pathname);
   }
 
+  function isShortsVideo(video) {
+    return isShortsPage() && video instanceof HTMLVideoElement &&
+      !!video.closest("ytd-shorts") &&
+      !isShowingAd(video.closest(".html5-video-player"));
+  }
+
+  function disableShortsLooping() {
+    if (!isShortsPage()) return;
+    for (const video of document.querySelectorAll("ytd-shorts video[loop]")) {
+      if (isShortsVideo(video)) video.loop = false;
+    }
+  }
+
+  // Native looping prevents the ended event. Watch for YouTube restoring it.
+  const shortsLoopObserver = new MutationObserver(disableShortsLooping);
+  shortsLoopObserver.observe(document.documentElement, {
+    subtree: true, attributes: true, attributeFilter: ["loop"]
+  });
+
+  document.addEventListener("ended", (event) => {
+    if (!isShortsVideo(event.target)) return;
+    // Stop the site's ended handlers from starting another playback.
+    event.stopImmediatePropagation();
+    event.target.pause();
+  }, true);
+
+  document.addEventListener("play", disableShortsLooping, true);
+  document.addEventListener("loadedmetadata", disableShortsLooping, true);
+
   let shortsResizeFrame = 0;
   let observedShorts = null;
   const shortsResizeObserver = new ResizeObserver(scheduleShortsResize);
@@ -84,6 +113,7 @@
 
   function updateShortsLayout() {
     const shorts = isShortsPage();
+    disableShortsLooping();
     if (shorts && isActive()) exit();
     const feed = shorts ? document.querySelector("ytd-shorts") : null;
     if (feed !== observedShorts) {

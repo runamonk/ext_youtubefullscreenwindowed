@@ -16,7 +16,8 @@ fullscreen mode.
 Shorts automatically fit the browser content height without cropping the video.
 Move the pointer to the top edge of the page to reveal the YouTube header; it also
 appears when its controls receive keyboard focus. Shorts retain their normal feed
-controls and keyboard shortcuts.
+controls and keyboard shortcuts. When a Short finishes, it stops instead of
+automatically replaying. You can replay it using the normal playback controls.
 
 Window fullscreen activates when a video starts playing. Use any of these controls to toggle it:
 
