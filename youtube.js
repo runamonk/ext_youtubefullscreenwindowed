@@ -5,6 +5,104 @@
   const PLAYER_CLASS = "yt-window-fullscreen-player";
   const BUTTON_ID = "yt-window-fullscreen-button";
   const SHORTS_CLASS = "yt-window-shorts";
+  const RATING_ID = "yt-window-rating-controls";
+  let ratingSource = null;
+  const ratingObserver = new MutationObserver(updateRatingControls);
+
+  function getRatingSource() {
+    const metadata = document.querySelector("ytd-watch-metadata");
+    return metadata?.querySelector(
+      "segmented-like-dislike-button-view-model, ytd-segmented-like-dislike-button-renderer"
+    ) || metadata?.querySelector("#top-level-buttons-computed");
+  }
+
+  function getRatingButton(kind) {
+    return getRatingSource()?.querySelector(
+      kind + "-button-view-model button, #" + kind + "-button button"
+    ) || null;
+  }
+
+  function updateRatingControls() {
+    let group = document.getElementById(RATING_ID);
+    // Keep the pill outside the time/chapter wrappers, which YouTube can clip.
+    const timeDisplay = activePlayer?.querySelector(".ytp-time-display");
+    const chapter = activePlayer?.querySelector(".ytp-chapter-container");
+    const anchor = chapter || timeDisplay;
+    const controls = isActive() && (
+      anchor?.closest(".ytp-left-controls, .ytp-right-controls-left") ||
+      anchor?.parentElement ||
+      activePlayer?.querySelector(".ytp-left-controls, .ytp-right-controls-left, .ytp-chrome-controls")
+    );
+    let placementAnchor = anchor;
+    while (placementAnchor && placementAnchor.parentElement !== controls) {
+      placementAnchor = placementAnchor.parentElement;
+    }
+    if (!controls || isShortsPage()) {
+      group?.remove();
+      ratingObserver.disconnect();
+      ratingSource = null;
+      return;
+    }
+    const source = getRatingSource();
+    if (source !== ratingSource) {
+      ratingObserver.disconnect();
+      ratingSource = source;
+      if (source) ratingObserver.observe(source, {
+        subtree: true, childList: true, attributes: true,
+        attributeFilter: ["aria-pressed", "aria-label", "disabled", "aria-disabled"]
+      });
+    }
+    if (!group || group.parentElement !== controls) {
+      group?.remove();
+      group = document.createElement("div");
+      group.id = RATING_ID;
+      for (const kind of ["like", "dislike"]) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "ytp-button yt-window-rating-button";
+        button.dataset.rating = kind;
+        const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        icon.setAttribute("viewBox", "0 0 24 24");
+        icon.setAttribute("aria-hidden", "true");
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", "M7 10H3v11h4V10Zm3 11h7a2 2 0 0 0 1.9-1.4l2-7A2 2 0 0 0 19 10h-6l1-5c.2-1-.5-2-1.5-2L7 10v11h3Z");
+        if (kind === "dislike") path.setAttribute("transform", "rotate(180 12 12)");
+        icon.appendChild(path);
+        button.appendChild(icon);
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          // Resolve at click time because YouTube replaces nodes during navigation.
+          const nativeButton = getRatingButton(kind);
+          if (isActive() && nativeButton && !nativeButton.disabled &&
+              nativeButton.getAttribute("aria-disabled") !== "true") {
+            nativeButton.click();
+            updateRatingControls();
+          }
+        });
+        group.appendChild(button);
+      }
+    }
+    // Chapters can appear or be replaced after the rating buttons are created.
+    // Guard the move so our subtree observer does not keep triggering itself.
+    if (placementAnchor && placementAnchor.nextElementSibling !== group) {
+      controls.insertBefore(group, placementAnchor.nextSibling);
+    } else if (!placementAnchor && group.parentElement !== controls) {
+      controls.appendChild(group);
+    }
+    for (const button of group.querySelectorAll("button")) {
+      const kind = button.dataset.rating;
+      const nativeButton = getRatingButton(kind);
+      button.disabled = !nativeButton || nativeButton.disabled ||
+        nativeButton.getAttribute("aria-disabled") === "true";
+      button.setAttribute("aria-pressed", String(
+        nativeButton?.getAttribute("aria-pressed") === "true"
+      ));
+      const label = nativeButton?.getAttribute("aria-label") ||
+        (kind === "like" ? "Like" : "Dislike");
+      button.title = label;
+      button.setAttribute("aria-label", label);
+    }
+  }
 
   function isShortsPage() {
     return /^\/shorts(?:\/|$)/.test(location.pathname);
@@ -201,6 +299,7 @@
     document.documentElement.classList.remove(ROOT_CLASS);
     activePlayer?.classList.remove(PLAYER_CLASS);
     activePlayer = null;
+    updateRatingControls();
     updateButton();
     window.dispatchEvent(new Event("resize"));
   }
@@ -220,6 +319,7 @@
     endCheckTimer = setInterval(checkPlaybackEnded, 250);
     activePlayer.classList.add(PLAYER_CLASS);
     document.documentElement.classList.add(ROOT_CLASS);
+    updateRatingControls();
     window.scrollTo(0, 0);
     updateButton();
     window.dispatchEvent(new Event("resize"));
@@ -315,6 +415,7 @@
     autoActivate();
     closeChatIfPresent();
     if (isActive() && !document.contains(activePlayer)) exit();
+    updateRatingControls();
   });
 
   observer.observe(document.documentElement, { childList: true, subtree: true });

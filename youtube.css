@@ -110,3 +110,86 @@ html.yt-window-shorts ytd-shorts.yt-window-shorts-stage #shorts-container {
   min-height: var(--yt-window-shorts-stage-height) !important;
   max-height: none !important;
 }
+/* Explicit dimensions also support YouTube's newer segmented control row. */
+#movie_player #yt-window-rating-controls {
+  display: inline-flex !important;
+  flex: 0 0 80px !important;
+  align-items: center;
+  align-self: center;
+  width: 80px !important;
+  height: 40px !important;
+  vertical-align: middle;
+  margin: 0 0 0 8px;
+  background: rgba(0, 0, 0, 0.3);
+  position: relative;
+  border-radius: 999px;
+  overflow: visible !important;
+}
+
+#movie_player #yt-window-rating-controls::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+}
+
+#movie_player #yt-window-rating-controls:hover::before,
+#movie_player #yt-window-rating-controls:focus-within::before {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #movie_player #yt-window-rating-controls::before {
+    transition: none;
+  }
+}
+
+#movie_player #yt-window-rating-controls .yt-window-rating-button {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 40px !important;
+  width: 40px !important;
+  height: 40px !important;
+  padding: 0 !important;
+  color: #fff !important;
+  visibility: inherit;
+  background: transparent !important;
+  border-radius: 999px;
+}
+
+#movie_player #yt-window-rating-controls svg {
+  display: block !important;
+  width: 24px !important;
+  height: 24px !important;
+  flex: none;
+  margin: auto;
+  pointer-events: none;
+  fill: none !important;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+#movie_player #yt-window-rating-controls [aria-pressed="true"] svg {
+  fill: currentColor !important;
+}
+
+#movie_player #yt-window-rating-controls button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+#movie_player #yt-window-rating-controls button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -3px;
+}
+/* Bound chapter text without replacing YouTube's native control-row layout. */
+html.yt-window-fullscreen #movie_player .ytp-chapter-container {
+  max-width: min(24vw, 240px) !important;
+  overflow: hidden;
+}

@@ -29,6 +29,10 @@ During window fullscreen, move the pointer to the top edge of the page to reveal
 the YouTube header. Keyboard focus also reveals it. Outside window fullscreen,
 regular videos keep the normal YouTube header.
 
+Hover over the bottom toolbar in window fullscreen to like or dislike the video
+using the thumb buttons beside the time display. Filled icons show your current
+rating. Clicking again removes it using YouTube's normal rating behavior.
+
 Press **Escape**, **F**, or the player button again to exit.
 Window fullscreen also exits automatically when the video finishes playing. Starting another video enables it again. If you manually exit, that video stays out of window fullscreen when resumed or replayed in the same tab until you refresh the page. Manually enabling fullscreen again clears that preference for the video.
 
