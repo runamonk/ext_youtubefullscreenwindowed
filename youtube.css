@@ -193,3 +193,15 @@ html.yt-window-fullscreen #movie_player .ytp-chapter-container {
   max-width: min(24vw, 240px) !important;
   overflow: hidden;
 }
+  /* Pin native controls without overriding individual visibility choices. */
+  html.yt-window-fullscreen.yt-window-toolbar-pinned #movie_player .ytp-chrome-top,
+  html.yt-window-fullscreen.yt-window-toolbar-pinned #movie_player .ytp-chrome-bottom {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+    transform: none !important;
+    pointer-events: auto !important;
+  }
+  html.yt-window-fullscreen.yt-window-toolbar-pinned #movie_player {
+    cursor: auto !important;
+  }

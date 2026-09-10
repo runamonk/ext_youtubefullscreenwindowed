@@ -1,7 +1,55 @@
 (() => {
   "use strict";
 
-  const ROOT_CLASS = "yt-window-fullscreen";
+
+  const toolbarSettings = globalThis.YTWindowSettings;
+  const toolbarStyle = document.createElement("style");
+  toolbarStyle.id = "yt-window-toolbar-preferences";
+  document.documentElement.appendChild(toolbarStyle);
+
+  function applyToolbarPreferences(value) {
+    const visibility = toolbarSettings.normalize(value);
+    const scope = "html.yt-window-fullscreen #movie_player.yt-window-fullscreen-player";
+    const rules = toolbarSettings.controls
+      .filter(({ id }) => !visibility[id])
+      .map(({ selector, group }) => {
+        const target = group === "header"
+          ? "html.yt-window-fullscreen #masthead-container"
+          : scope;
+        return target + " " + selector + " { display: none !important; }";
+      });
+    const css = rules.join("\n");
+    if (toolbarStyle.textContent !== css) toolbarStyle.textContent = css;
+    window.dispatchEvent(new Event("resize"));
+  }
+
+
+    let playerPreferences = toolbarSettings.normalizePreferences();
+    let preferencesReady = false;
+    const changedSettings = new Set();
+
+    function applyPlayerPreferences(value) {
+      playerPreferences = toolbarSettings.normalizePreferences(value);
+      preferencesReady = true;
+      document.documentElement.classList.toggle("yt-window-toolbar-pinned", playerPreferences.keepToolbarVisible);
+      autoActivate();
+      checkPlaybackEnded();
+    }
+
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area !== "local") return;
+      for (const key of Object.keys(changes)) changedSettings.add(key);
+      if (changes[toolbarSettings.key]) applyToolbarPreferences(changes[toolbarSettings.key].newValue);
+      if (changes[toolbarSettings.preferencesKey]) applyPlayerPreferences(changes[toolbarSettings.preferencesKey].newValue);
+    });
+    chrome.storage.local.get([toolbarSettings.key, toolbarSettings.preferencesKey]).then((result) => {
+      if (!changedSettings.has(toolbarSettings.key)) applyToolbarPreferences(result[toolbarSettings.key]);
+      if (!changedSettings.has(toolbarSettings.preferencesKey)) applyPlayerPreferences(result[toolbarSettings.preferencesKey]);
+    }).catch(() => {
+      if (!preferencesReady) applyPlayerPreferences();
+    });
+
+    const ROOT_CLASS = "yt-window-fullscreen";
   const PLAYER_CLASS = "yt-window-fullscreen-player";
   const BUTTON_ID = "yt-window-fullscreen-button";
   const SHORTS_CLASS = "yt-window-shorts";
@@ -238,6 +286,7 @@
   }
 
   function checkPlaybackEnded() {
+    if (!preferencesReady || !playerPreferences.autoExit) return;
     if (!isActive() || !activePlayer || isShowingAd(activePlayer)) return;
     const video = activePlayer.querySelector("video");
     if (activePlayer.classList.contains("ended-mode") || video?.ended) exit();
@@ -282,8 +331,8 @@
       );
     }
     button.title = active
-      ? "Exit window fullscreen (F)"
-      : "Window fullscreen (F)";
+      ? "Exit faux fullscreen (F)"
+      : "Faux fullscreen (F)";
     button.setAttribute("aria-label", button.title);
     button.setAttribute("aria-pressed", String(active));
   }
@@ -336,6 +385,7 @@
   }
 
   function autoActivate() {
+    if (!preferencesReady || !playerPreferences.autoEnter) return;
     const videoKey = getVideoKey();
     const player = getPlayer();
     const video = player?.querySelector("video");
@@ -472,7 +522,7 @@
   // Media events do not bubble; capture also handles replacement video elements.
   document.addEventListener("ended", (event) => {
     const video = event.target;
-    console.log("Video ended event:", video, activePlayer, isActive(), isShowingAd(activePlayer));
+    if (!preferencesReady || !playerPreferences.autoExit) return;
     if (
       !isActive() ||
       !(video instanceof HTMLVideoElement) ||

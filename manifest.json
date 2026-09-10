@@ -19,9 +19,17 @@
         "youtube.css"
       ],
       "js": [
+        "settings.js",
         "youtube.js"
       ],
       "run_at": "document_idle"
     }
-  ]
+  ],
+  "permissions": [
+    "storage"
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  }
 }

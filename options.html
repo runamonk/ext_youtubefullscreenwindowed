@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YouTube Window Fullscreen — Options</title>
+  <link rel="stylesheet" href="options.css">
+  <script src="settings.js" defer></script>
+  <script src="options.js" defer></script>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">YOUTUBE WINDOW FULLSCREEN</p>
+    <h1>Your player, your controls.</h1>
+    <p>Choose which controls can appear in window fullscreen. Changes save automatically and apply to open YouTube tabs.</p>
+    <p class="hint">All controls start enabled. YouTube still decides when a control is available and when the toolbar appears. Hiding captions or autoplay buttons does not change those features.</p>
+    <form id="options">
+      <fieldset id="visibility" disabled>
+        <legend>Toolbar visibility</legend>
+        <fieldset class="visibility-subgroup">
+          <legend>Top header</legend>
+          <p class="hint">The YouTube page header revealed at the top edge during faux fullscreen.</p>
+          <div id="header-controls" class="control-grid"></div>
+        </fieldset>
+        <fieldset class="visibility-subgroup">
+          <legend>Player controls</legend>
+          <div id="player-controls" class="control-grid"></div>
+        </fieldset>
+      </fieldset>
+
+        <fieldset id="behavior" disabled>
+          <legend>Playback and toolbar</legend>
+          <div id="behaviors"></div>
+          <p class="hint">Turning off automatic entry leaves manual controls available. Keeping the toolbar visible still respects your visibility switches.</p>
+        </fieldset>
+        <fieldset id="appearance" disabled>
+          <legend>Appearance</legend>
+          <label for="theme">Options page theme
+            <select id="theme">
+              <option value="system">System / browser (automatic)</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </label>
+          <p class="hint">Automatic follows the light or dark preference reported by your browser and updates when it changes. Custom Edge theme colors and images are not copied.</p>
+        </fieldset>
+        <footer>
+        <button id="reset" type="button" disabled>Restore defaults</button>
+        <p id="status" role="status" aria-live="polite">Loading settings…</p>
+      </footer>
+    </form>
+    <p class="hint">Even with every control hidden, press <kbd>F</kbd> or <kbd>Escape</kbd> to exit, or click the extension icon. These preferences only affect window fullscreen.</p>
+  </main>
+</body>
+</html>
