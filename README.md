@@ -1,4 +1,4 @@
-# YouTube Window Fullscreen
+# Youtube Faux Fullscreen
 
 A minimal Manifest V3 extension for Chromium browsers. It makes the current
 YouTube player fill the browser's content area without entering operating-system
