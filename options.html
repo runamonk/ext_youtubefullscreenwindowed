@@ -6,6 +6,7 @@
   <title>YouTube Window Fullscreen — Options</title>
   <link rel="stylesheet" href="options.css">
   <script src="settings.js" defer></script>
+  <script src="config.js" defer></script>
   <script src="options.js" defer></script>
 </head>
 <body>
@@ -44,7 +45,17 @@
           </label>
           <p class="hint">Automatic follows the light or dark preference reported by your browser and updates when it changes. Custom Edge theme colors and images are not copied.</p>
         </fieldset>
-        <footer>
+
+      <fieldset id="backup" disabled>
+        <legend>Configuration backup</legend>
+        <p class="hint">Export your visibility, playback and theme settings to JSON. Import replaces your settings; missing options use defaults and unknown options are ignored.</p>
+        <div class="backup-actions">
+          <button id="export-config" type="button">Export JSON</button>
+          <button id="import-config" type="button">Import JSON</button>
+          <input id="config-file" type="file" accept=".json,application/json" hidden>
+        </div>
+      </fieldset>
+      <footer>
         <button id="reset" type="button" disabled>Restore defaults</button>
         <p id="status" role="status" aria-live="polite">Loading settings…</p>
       </footer>

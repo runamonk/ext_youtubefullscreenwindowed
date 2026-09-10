@@ -70,3 +70,15 @@ After updating an unpacked installation, reload the extension and YouTube tabs.
 The **Top header** visibility group controls the YouTube page masthead: menu,
 logo, search, microphone, Create, notifications and account. These switches apply
 only in faux fullscreen. Video overlay actions are listed under **Player controls**.
+
+## Configuration backups
+
+In Options, use **Export JSON** to download visibility, playback and theme
+preferences. **Import JSON** restores them and updates open YouTube tabs.
+Import replaces existing preferences; options missing from an older backup use
+current defaults, while unknown options are ignored. Separate legacy like/dislike
+settings are supported. Invalid files leave current settings untouched.
+
+Backups include a format identifier and schema version. Adding options does not
+require a new schema version; incompatible format versions are rejected with an
+update message. Exports contain settings only.

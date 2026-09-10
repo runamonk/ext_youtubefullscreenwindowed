@@ -39,14 +39,14 @@ function disable(value) {
   for (const fieldset of fieldsets) fieldset.disabled = value;
   reset.disabled = value;
 }
-async function save(update) {
+async function save(update, successMessage = "Saved.") {
   saving = true;
   disable(true);
   status.textContent = "Saving...";
   try {
     await chrome.storage.local.set(update);
     Object.assign(saved, update);
-    status.textContent = "Saved.";
+    status.textContent = successMessage;
   } catch {
     status.textContent = "Could not save. Please try again.";
   } finally {
@@ -92,3 +92,43 @@ chrome.storage.onChanged.addListener((changes, area) => {
     status.textContent = "Could not load settings. Reload this page to try again.";
   }
 })();
+
+const configFile = document.getElementById("config-file");
+document.getElementById("export-config").addEventListener("click", () => {
+  if (saving) return;
+  try {
+    const blob = new Blob([YTWindowConfig.serialize(saved)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "faux-fullscreen-config-" + new Date().toISOString().slice(0, 10) + ".json";
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    status.textContent = "JSON export download started.";
+  } catch {
+    status.textContent = "Could not export settings. Please try again.";
+  }
+});
+document.getElementById("import-config").addEventListener("click", () => {
+  if (!saving) configFile.click();
+});
+configFile.addEventListener("change", async () => {
+  const file = configFile.files[0];
+  configFile.value = "";
+  if (!file || saving) return;
+  saving = true;
+  disable(true);
+  status.textContent = "Reading configuration...";
+  try {
+    if (file.size > 1024 * 1024) throw new Error("Choose a configuration file smaller than 1 MB.");
+    const update = YTWindowConfig.parse(await file.text());
+    await save(update, "Configuration imported. Open players updated.");
+  } catch (error) {
+    status.textContent = "Import failed: " + error.message;
+  } finally {
+    saving = false;
+    disable(false);
+  }
+});
