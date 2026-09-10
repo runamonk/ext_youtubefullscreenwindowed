@@ -22,7 +22,6 @@ automatically replaying. You can replay it using the normal playback controls.
 Window fullscreen activates when a video starts playing. Use any of these controls to toggle it:
 
 - Click the new four-corners button in the YouTube player controls.
-- Click the extension's toolbar button.
 - Press **F**.
 
 During window fullscreen, move the pointer to the top edge of the page to reveal
@@ -41,7 +40,7 @@ permissions.
 
 ## Toolbar options
 
-Right-click the extension icon and choose **Options**, or open **Extension
+Click the extension icon to open Options. You can also open **Extension
 options** from the extension's details in the browser extension manager.
 
 Each supported player control has its own visibility switch, including the seek
@@ -52,7 +51,7 @@ Enabled switches preserve YouTube's normal availability and hover behavior;
 they do not force unavailable controls to appear or enable captions/autoplay.
 
 **Restore defaults** enables every switch. If you hide the window fullscreen
-button, **F**, **Escape** and the extension icon still let you exit.
+button, **F** and **Escape** still let you exit.
 The extension requests the **storage** permission to remember these preferences.
 After updating an unpacked installation, reload the extension and YouTube tabs.
 
