@@ -119,9 +119,6 @@
         button.appendChild(icon);
         button.addEventListener("click", (event) => {
           event.stopPropagation();
-          // Pointer clicks must not keep the toolbar open through button focus.
-          // Keyboard activation has detail 0 and retains focus for navigation.
-          if (event.detail > 0) button.blur();
           // Resolve at click time because YouTube replaces nodes during navigation.
           const nativeButton = getRatingButton(kind);
           if (isActive() && nativeButton && !nativeButton.disabled &&
@@ -154,6 +151,21 @@
       button.setAttribute("aria-label", label);
     }
   }
+
+  // Capture also covers native/replaced controls and buttons that stop bubbling.
+  document.addEventListener("click", (event) => {
+    if (!isActive() || event.detail === 0 || !(event.target instanceof Element)) return;
+    const button = event.target.closest("button, [role='button']");
+    if (!button || !activePlayer?.contains(button) ||
+        !button.closest(".ytp-chrome-bottom, .ytp-chrome-top")) return;
+
+    // Let the click action finish first. Preserve focus moved into a menu/dialog,
+    // and retain keyboard activation focus (click detail 0) for navigation.
+    setTimeout(() => {
+      const focused = document.activeElement;
+      if (focused instanceof HTMLElement && button.contains(focused)) focused.blur();
+    });
+  }, true);
 
   function isShortsPage() {
     return /^\/shorts(?:\/|$)/.test(location.pathname);
