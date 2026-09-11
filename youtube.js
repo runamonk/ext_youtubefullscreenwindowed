@@ -119,6 +119,9 @@
         button.appendChild(icon);
         button.addEventListener("click", (event) => {
           event.stopPropagation();
+          // Pointer clicks must not keep the toolbar open through button focus.
+          // Keyboard activation has detail 0 and retains focus for navigation.
+          if (event.detail > 0) button.blur();
           // Resolve at click time because YouTube replaces nodes during navigation.
           const nativeButton = getRatingButton(kind);
           if (isActive() && nativeButton && !nativeButton.disabled &&
